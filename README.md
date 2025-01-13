@@ -1,1 +1,3 @@
-# Energy-Transition-API
+# LEO-Event-API
+
+LEO Event API
