@@ -10,38 +10,44 @@ const fs = require("fs");
 const userRegister = async (req, res) => {
     try {
         upload(req, res, async (err) => {
-            // 1) Check for Multer upload errors
+            // 1) Check Multer errors
             if (err) {
                 if (err.code === "LIMIT_FILE_SIZE") {
-                    return res.status(413).send({
+                    return res.status(413).json({
                         success: false,
-                        message: "File/Photo's size is too large. Maximum allowed size is 5 MB.",
+                        message: "File/Photo's size is too large. Max allowed size is 5 MB.",
                     });
                 }
-                return res.status(400).send({
+                return res.status(400).json({
                     success: false,
-                    message: "Error uploading image. Try Again.",
+                    message: "Error uploading image. Try again.",
                     error: err.message,
                 });
             }
 
-
+            // 2) Optional profile picture
             let userimage = null;
             if (req.files && req.files.userimage && req.files.userimage.length > 0) {
                 userimage = req.files.userimage[0].path;
             }
 
+            // 3) Destructure fields
             const {
+                title,
+                gender, // now a single string: "male", "female", "others"
                 firstName,
                 middleName,
                 lastName,
                 nameOfInstitution,
                 jobPosition,
                 emailAddress,
-                mobileNumber
+                mobileNumber,
             } = req.body;
 
+            // Debug logs
+            console.log("DEBUG: req.body:", req.body);
 
+            // 4) Validate required fields
             if (!firstName || !lastName || !emailAddress) {
                 return res.status(400).json({
                     success: false,
@@ -49,13 +55,12 @@ const userRegister = async (req, res) => {
                 });
             }
 
-
-
+            // 5) Sanitize name fields
             const sanitizedFirstName = firstName.replace(/\s/g, "");
             const sanitizedMiddleName = middleName ? middleName.replace(/\s/g, "") : "";
             const sanitizedLastName = lastName.replace(/\s/g, "");
 
-
+            // 6) Validate email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(emailAddress)) {
                 return res.status(400).json({
@@ -64,6 +69,7 @@ const userRegister = async (req, res) => {
                 });
             }
 
+            // 7) Check if user with this email already exists
             const existingUser = await User.findOne({
                 "personalInformation.emailAddress": emailAddress,
             });
@@ -74,13 +80,14 @@ const userRegister = async (req, res) => {
                 });
             }
 
-            // 4) Hash the default password
-            const defaultPassword = process.env.DEFAULT_PASSWORD;
+            // 8) Hash default password
+            const defaultPassword = process.env.DEFAULT_PASSWORD || "Secret123";
             const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-            // 5) Create new user object
+            // 9) Create the user doc
             const newUser = new User({
                 personalInformation: {
+                    title: title || "",
                     fullName: {
                         firstName: sanitizedFirstName,
                         middleName: sanitizedMiddleName,
@@ -91,11 +98,14 @@ const userRegister = async (req, res) => {
                     mobileNumber,
                     emailAddress,
                     userPassword: hashedPassword,
+                    gender: gender || "male",
                 },
                 profilePicture: {
                     fileName: userimage || false,
                 },
             });
+
+            // 10) Save to DB
             await newUser.save();
 
             return res.status(200).json({
@@ -105,7 +115,7 @@ const userRegister = async (req, res) => {
             });
         });
     } catch (error) {
-        console.error(error);
+        console.error("Registration Error:", error);
         return res.status(500).json({ error: "Internal server error." });
     }
 };
