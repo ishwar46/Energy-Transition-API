@@ -137,7 +137,7 @@ const sendMail = async (userUniqueID) => {
         const mailOptions = {
             from: "UranusTechNepal",
             to: user.personalInformation.emailAddress,
-            subject: "Welcome to the Energy Transition for Resilient and Low Carbon Economy Summit",
+            subject: "Welcome to the Energy Transition for Resilient and Low Carbon Economy Summit 2025",
             html: htmlToSend,
         };
 
