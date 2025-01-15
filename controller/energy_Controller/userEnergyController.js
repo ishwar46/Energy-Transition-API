@@ -89,8 +89,8 @@ const registerEnergy = async (req, res) => {
                 },
             });
 
-          const savedUser =   await newUser.save();
-          console.log(`User Id is ${savedUser._id}`)
+            const savedUser = await newUser.save();
+            console.log(`User Id is ${savedUser._id}`)
 
             await sendMail(savedUser._id);
 
@@ -109,8 +109,8 @@ const registerEnergy = async (req, res) => {
 const transporter = nodeMail.createTransport({
     service: "gmail",
     auth: {
-        user: "uranus09867@gmail.com",  
-        pass: "kmsd jnau kcns xktm" 
+        user: "uranus09867@gmail.com",
+        pass: "kmsd jnau kcns xktm"
     }
 });
 
@@ -135,10 +135,10 @@ const sendMail = async (userUniqueID) => {
 
         // Setup email options
         const mailOptions = {
-            from: "UranusTechNepal",  
-            to: user.personalInformation.emailAddress,  
-            subject: "Welcome to the Energy Transition for Resilient and Low Carbon Economy Summit 2025",
-            html: htmlToSend,  
+            from: "UranusTechNepal",
+            to: user.personalInformation.emailAddress,
+            subject: "Welcome to the Energy Transition for Resilient and Low Carbon Economy Summit",
+            html: htmlToSend,
         };
 
         transporter.sendMail(mailOptions, (error, info) => {
