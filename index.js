@@ -6,7 +6,7 @@ const cors = require("cors");
 const path = require("path");
 const http = require("http");
 const socketIo = require("socket.io");
-const Chat = require("./models/chat");
+const Chat = require("./models/chat");  
 const fs = require("fs");
 const admin = require('firebase-admin');
 const serviceAccount = require('./firebaseconfig/firebase-config.json');
@@ -132,6 +132,9 @@ app.use("/api/pdfevent", require("./routes/eventPdfRoutes"));
 app.use("/api/pdf1", require("./routes/onlyPdfRoutes"));
 app.use("/api/volunteer", require("./routes/volunteerRoutes"));
 app.use("/api/onsite", require("./routes/onSiteRegisterRoutes"));
+
+//Energy Route
+app.use("/api/energy", require("./routes/energy_routes/energyUserRoutes"))
 
 // Pass the Socket.IO instance to the routes
 app.use((req, res, next) => {
