@@ -6,26 +6,6 @@ const handlebars = require("handlebars");
 const nodeMail = require('nodemailer');
 
 
-//Function to generate Random Unique Number 
-const generateUniqueUserID = async () => {
-    const min = 100000;
-    const max = 999999;
-    let uniqueId;
-    let isUnique = false;
-
-    while (!isUnique) {
-        uniqueId = Math.floor(Math.random() * (max - min + 1)) + min;
-        console.log(`Generated ID: ${uniqueId}`);
-        const existingUser = await User.findOne({ "userUniqueID": uniqueId }); 
-        if (!existingUser) {
-            isUnique = true; 
-        }
-    }
-
-    return uniqueId;
-
-}
-
 const registerEnergy = async (req, res) => {
 
     try {
@@ -82,8 +62,6 @@ const registerEnergy = async (req, res) => {
                 });
             }
 
-            const userUniqueID = await generateUniqueUserID();
-
             const defaultPassword = process.env.DEFAULT_PASSWORD || "Secret123";
             const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
@@ -109,12 +87,12 @@ const registerEnergy = async (req, res) => {
                 profilePicture: {
                     fileName: userimage || false,
                 },
-                userUniqueID: userUniqueID
             });
 
-            await newUser.save();
+          const savedUser =   await newUser.save();
+          console.log(`User Id is ${savedUser._id}`)
 
-            await sendMail(userUniqueID);
+            await sendMail(savedUser._id);
 
             return res.status(200).json({
                 success: true,
@@ -142,7 +120,7 @@ const sendMail = async (userUniqueID) => {
         const emailTemplate = handlebars.compile(energyMailTemplate);
 
         // Find the user based on the unique ID
-        const user = await User.findOne({ "userUniqueID": userUniqueID });
+        const user = await User.findById(userUniqueID)
         if (!user) throw new Error("User not found.");
 
         const replacements = {
@@ -150,14 +128,14 @@ const sendMail = async (userUniqueID) => {
             middleName: user.personalInformation.fullName.middleName,
             lastName: user.personalInformation.fullName.lastName,
             fullName: `${user.personalInformation.fullName.firstName} ${user.personalInformation.fullName.middleName} ${user.personalInformation.fullName.lastName}`,
-            userUniqueID: user.userUniqueID,
+            userUniqueID: userUniqueID
         };
 
         const htmlToSend = emailTemplate(replacements);
 
         // Setup email options
         const mailOptions = {
-            from: "uranus09867@gmail.com",  
+            from: "UranusTechNepal",  
             to: user.personalInformation.emailAddress,  
             subject: "Welcome to the Energy Transition for Resilient and Low Carbon Economy Summit 2025",
             html: htmlToSend,  
