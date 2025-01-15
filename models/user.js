@@ -71,6 +71,7 @@ const userSchema = new Schema({
       additionalNotes: { type: String },
     },
   ],
+  userUniqueID: { type: Number, required: true, unique: true }
 });
 
 const User = mongoose.model("User", userSchema);
