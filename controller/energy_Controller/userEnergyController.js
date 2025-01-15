@@ -16,9 +16,9 @@ const generateUniqueUserID = async () => {
     while (!isUnique) {
         uniqueId = Math.floor(Math.random() * (max - min + 1)) + min;
         console.log(`Generated ID: ${uniqueId}`);
-        const existingUser = await User.findOne({ "userUniqueID": uniqueId }); 
+        const existingUser = await User.findOne({ "userUniqueID": uniqueId });
         if (!existingUser) {
-            isUnique = true; 
+            isUnique = true;
         }
     }
 
@@ -131,8 +131,8 @@ const registerEnergy = async (req, res) => {
 const transporter = nodeMail.createTransport({
     service: "gmail",
     auth: {
-        user: "uranus09867@gmail.com",  
-        pass: "kmsd jnau kcns xktm" 
+        user: "uranus09867@gmail.com",
+        pass: "kmsd jnau kcns xktm"
     }
 });
 
@@ -157,10 +157,10 @@ const sendMail = async (userUniqueID) => {
 
         // Setup email options
         const mailOptions = {
-            from: "uranus09867@gmail.com",  
-            to: user.personalInformation.emailAddress,  
+            from: "uranus09867@gmail.com",
+            to: user.personalInformation.emailAddress,
             subject: "Welcome to the Energy Transition for Resilient and Low Carbon Economy Summit 2025",
-            html: htmlToSend,  
+            html: htmlToSend,
         };
 
         transporter.sendMail(mailOptions, (error, info) => {
