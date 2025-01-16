@@ -7,6 +7,8 @@ const handlebars = require("handlebars");
 const LiveStream = require("../models/liveStream");
 const Volunteer = require("../models/volunteer");
 const upload = require("../middleware/multipledocs");
+const nodeMail = require('nodemailer');
+
 
 function generateRandomPassword(length = 6) {
     const charset =
@@ -144,146 +146,135 @@ const adminLogin = async (req, res) => {
         res.status(500).json({ error: "Internal server error." });
     }
 };
-// const adminVerifyUser = async (req, res) => {
-//     try {
-//         const { userId } = req.params;
 
-//         // Find the user by ID
-//         const user = await User.findById(userId);
+const transporter = nodeMail.createTransport({
+    service: "gmail",
+    auth: {
+        user: "energytransition.summit2025@gmail.com",
+        pass: "agbd hkzd ntoj dhcg"
+    }
+});
 
-//         if (!user) {
-//             return res.status(404).json({ error: "User not found." });
-//         }
-
-//         // Assuming admin verification is successful and status is changed to "accepted"
-//         user.adminVerification.status = "accepted"; // Change the status to "accepted"
-//         user.isVerifiedByAdmin = true;
-//         await user.save();
-
-//         // Send the password only if the user is verified by admin and status is "accepted"
-//         // Check if the user is verified by admin and status is "accepted"
-//         if (
-//             user.isVerifiedByAdmin &&
-//             user.adminVerification.status === "accepted"
-//         ) {
-//             // Generate a random mixed password
-//             const randomPassword = generateRandomPassword();
-
-//             // Hash the random password using bcrypt
-//             // const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-
-//             // Update the user's hashed password in the database
-//             user.personalInformation.userPassword = hashedPassword;
-//             await user.save();
-
-//             // Generate invoice details
-//             const invoiceNumber = generateInvoiceNumber();
-//             const invoiceDate = new Date().toISOString().split("T")[0];
-//             const amountDue = "$300";
-//             const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-//                 .toISOString()
-//                 .split("T")[0]; //  days from now
-
-//             const source = fs.readFileSync("mailtemplate.html", "utf-8").toString();
-//             const template = handlebars.compile(source);
-//             const replacements = {
-//                 firstName: user.personalInformation.fullName.firstName,
-//                 middleName: user.personalInformation.fullName.middleName,
-//                 lastName: user.personalInformation.fullName.lastName,
-//                 fullName: `${user.personalInformation.fullName.firstName} ${user.personalInformation.fullName.middleName} ${user.personalInformation.fullName.lastName}`,
-//                 password: randomPassword,
-//                 institution: user.personalInformation.nameOfInstitution,
-//                 officeAddress: user.personalInformation.officeAddress,
-//                 invoiceNumber: invoiceNumber,
-//                 invoiceDate: invoiceDate,
-//                 amountDue: amountDue,
-//                 dueDate: dueDate,
-//                 isChiefDelegateOrSpeaker: user.chiefDelegateOrSpeaker.chiefDelegate ||
-//                     user.chiefDelegateOrSpeaker.speaker,
-//             };
-
-//             const htmlToSend = template(replacements);
-
-//             // Send email to the user with the random password and invoice details
-//             await sendEmail({
-//                 subject: "Registration Approved - 36th ACSIC Conference Kathmandu, Nepal",
-//                 html: htmlToSend,
-//                 to: user.personalInformation.emailAddress,
-//             });
-//         }
-
-//         res
-//             .status(200)
-//             .json({ success: true, message: "User verified successfully." });
-//     } catch (error) {
-//         console.log(error);
-//         res.status(500).json({ error: "Internal server error." });
-//     }
-// }
-
-//Caching the email template in Memory
-
-let maileTemplateForNational = fs.readFileSync("mailtemplate.html", "utf-8").toString()
-const emailtemplate1 = handlebars.compile(maileTemplateForNational);
-let maileTemplateForInterNational = fs.readFileSync("mailtemplate_intl.html", "utf-8").toString()
-const emailtemplate2 = handlebars.compile(maileTemplateForInterNational);
 const adminVerifyUser = async (req, res) => {
-
     try {
         const { userId } = req.params;
 
+        // Find the user by ID
         const user = await User.findById(userId);
+
         if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: "User Not found"
-            });
+            return res.status(404).json({ error: "User not found." });
         }
 
-        user.adminVerification.status = "accepted";
+        // Assuming admin verification is successful and status is changed to "accepted"
+        user.adminVerification.status = "accepted"; // Change the status to "accepted"
         user.isVerifiedByAdmin = true;
-
-        const randomPassword = generateRandomPassword();
-        const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-        user.personalInformation.userPassword = hashedPassword;
-
         await user.save();
 
-        // Prepare email template replacements
-        const replacements = {
-            firstName: user.personalInformation.fullName.firstName,
-            middleName: user.personalInformation.fullName.middleName,
-            lastName: user.personalInformation.fullName.lastName,
-            fullName: `${user.personalInformation.fullName.firstName} ${user.personalInformation.fullName.middleName} ${user.personalInformation.fullName.lastName}`,
-            password: randomPassword,
-        };
+        // Send the password only if the user is verified by admin and status is "accepted"
+        // Check if the user is verified by admin and status is "accepted"
+        if (
+            user.isVerifiedByAdmin &&
+            user.adminVerification.status === "accepted"
+        ) {
+    
+            await user.save();
 
-        //Check user according to nationality 
-        const checkNationality = user.personalInformation.nationality;
-        const emailTemplate = checkNationality === "Nepal" ? emailtemplate1(replacements) : emailtemplate2(replacements);
+            const source = fs.readFileSync("mailtemplate.html", "utf-8").toString();
+            const template = handlebars.compile(source);
+            const replacements = {
+                firstName: user.personalInformation.fullName.firstName,
+                lastName: user.personalInformation.fullName.lastName,
+                userUniqueID: userId
+            };
 
-        //Generating Email HTML Template
-        const htmlToSend = emailTemplate;
-        res.status(200).json({ success: true, message: "User verified successfully." });
+            const htmlToSend = template(replacements);
+            const mailOptions = {
+                from: "UranusTechNepal",
+                to: user.personalInformation.emailAddress,
+                subject: "Welcome to the Energy Transition for Resilient and Low Carbon Economy Summit 2025",
+                html: htmlToSend,
+            };
 
-        sendEmail({
-            subject: "Registration Approved - International Youth Camp 2025 Chitwan, Nepal",
-            html: htmlToSend,
-            to: user.personalInformation.emailAddress,
-        }).catch(emailError => {
-            console.error(`Failed to send email: ${emailError.message}`);
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error("Error sending email:", error);
+                    throw error;
+                } else {
+                    console.log("Email sent successfully:", info.response);
+                }
+            });
+            res.status(200).json({ success: true, message: "User verified successfully." });
 
-        })
-
+        }
     } catch (error) {
-        console.error(error);
+        console.log(error);
         res.status(500).json({ error: "Internal server error." });
-
     }
-
 }
+
+//Caching the email template in Memory
+
+// let maileTemplateForNational = fs.readFileSync("mailtemplate.html", "utf-8").toString()
+// const emailtemplate1 = handlebars.compile(maileTemplateForNational);
+// let maileTemplateForInterNational = fs.readFileSync("mailtemplate_intl.html", "utf-8").toString()
+// const emailtemplate2 = handlebars.compile(maileTemplateForInterNational);
+// const adminVerifyUser = async (req, res) => {
+
+//     try {
+//         const { userId } = req.params;
+
+//         const user = await User.findById(userId);
+//         if (!user) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "User Not found"
+//             });
+//         }
+
+//         user.adminVerification.status = "accepted";
+//         user.isVerifiedByAdmin = true;
+
+//         const randomPassword = generateRandomPassword();
+//         const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+//         user.personalInformation.userPassword = hashedPassword;
+
+//         await user.save();
+
+//         // Prepare email template replacements
+//         const replacements = {
+//             firstName: user.personalInformation.fullName.firstName,
+//             middleName: user.personalInformation.fullName.middleName,
+//             lastName: user.personalInformation.fullName.lastName,
+//             fullName: `${user.personalInformation.fullName.firstName} ${user.personalInformation.fullName.middleName} ${user.personalInformation.fullName.lastName}`,
+//             password: randomPassword,
+//         };
+
+//         //Check user according to nationality 
+//         const checkNationality = user.personalInformation.nationality;
+//         const emailTemplate = checkNationality === "Nepal" ? emailtemplate1(replacements) : emailtemplate2(replacements);
+
+//         //Generating Email HTML Template
+//         const htmlToSend = emailTemplate;
+//         res.status(200).json({ success: true, message: "User verified successfully." });
+
+//         sendEmail({
+//             subject: "Registration Approved - International Youth Camp 2025 Chitwan, Nepal",
+//             html: htmlToSend,
+//             to: user.personalInformation.emailAddress,
+//         }).catch(emailError => {
+//             console.error(`Failed to send email: ${emailError.message}`);
+
+//         })
+
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: "Internal server error." });
+
+//     }
+
+// }
 
 // admin edit user
 const adminEditUser = async (req, res) => {

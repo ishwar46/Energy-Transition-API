@@ -80,10 +80,10 @@ const registerEnergy = async (req, res) => {
                     userPassword: hashedPassword,
                     gender: gender || "male",
                 },
-                adminVerification: {
-                    status: "accepted",
-                },
-                isVerifiedByAdmin: true,
+                // adminVerification: {
+                //     status: "accepted",
+                // },
+                // isVerifiedByAdmin: true,
                 profilePicture: {
                     fileName: userimage || false,
                 },
@@ -109,8 +109,8 @@ const registerEnergy = async (req, res) => {
 const transporter = nodeMail.createTransport({
     service: "gmail",
     auth: {
-        user: "uranus09867@gmail.com",
-        pass: "kmsd jnau kcns xktm"
+        user: "energytransition.summit2025@gmail.com",
+        pass: "agbd hkzd ntoj dhcg"
     }
 });
 
@@ -125,10 +125,10 @@ const sendMail = async (userUniqueID) => {
 
         const replacements = {
             firstName: user.personalInformation.fullName.firstName,
-            middleName: user.personalInformation.fullName.middleName,
+            // middleName: user.personalInformation.fullName.middleName,
             lastName: user.personalInformation.fullName.lastName,
-            fullName: `${user.personalInformation.fullName.firstName} ${user.personalInformation.fullName.middleName} ${user.personalInformation.fullName.lastName}`,
-            userUniqueID: userUniqueID
+            // fullName: `${user.personalInformation.fullName.firstName} ${user.personalInformation.fullName.middleName} ${user.personalInformation.fullName.lastName}`,
+            // userUniqueID: userUniqueID
         };
 
         const htmlToSend = emailTemplate(replacements);
@@ -154,6 +154,7 @@ const sendMail = async (userUniqueID) => {
         throw error;
     }
 };
+
 
 
 module.exports = {
