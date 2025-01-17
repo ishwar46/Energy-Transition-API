@@ -16,6 +16,16 @@ const userSchema = new Schema({
     emailAddress: { type: String },
     gender: { type: String, enum: ["male", "female", "others"], default: "male" },
     plainTextPassword: String,
+    arrivalCheckIn: {
+      participantCheckIn: {
+        date: { type: Date },
+        checkedIn: { type: Boolean, default: false },
+      },
+      accompanyCheckIn: {
+        date: { type: Date },
+        checkedIn: { type: Boolean, default: false },
+      },
+    },
   },
   profilePicture: {
     uploadDate: { type: Date, default: Date.now },
