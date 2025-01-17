@@ -15,6 +15,17 @@ const userSchema = new Schema({
     userPassword: { type: String },
     emailAddress: { type: String },
     gender: { type: String, enum: ["male", "female", "others"], default: "male" },
+    participantType: {
+      type: String,
+      enum: [
+        "Session Chair",
+        "Moderator",
+        "Presenter",
+        "General Participant",
+        "VIP Guest",
+      ],
+      default: "General Participant",
+    },
     plainTextPassword: String,
     arrivalCheckIn: {
       participantCheckIn: {

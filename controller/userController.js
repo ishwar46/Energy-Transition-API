@@ -34,7 +34,7 @@ const userRegister = async (req, res) => {
             // 3) Destructure fields
             const {
                 title,
-                gender, // now a single string: "male", "female", "others"
+                gender,
                 firstName,
                 middleName,
                 lastName,
@@ -42,6 +42,7 @@ const userRegister = async (req, res) => {
                 jobPosition,
                 emailAddress,
                 mobileNumber,
+                participantType,
             } = req.body;
 
             // Debug logs
@@ -99,6 +100,7 @@ const userRegister = async (req, res) => {
                     emailAddress,
                     userPassword: hashedPassword,
                     gender: gender || "male",
+                    participantType,
                 },
                 profilePicture: {
                     fileName: userimage || false,
