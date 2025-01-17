@@ -127,7 +127,7 @@ const adminLogin = async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign({ id: admin._id, isAdmin: admin.isAdmin },
-            process.env.JWT_SECRET, { expiresIn: "7 days" }
+            process.env.JWT_SECRET, { expiresIn: "1 day" }
         );
 
         // Admin login successful
@@ -177,7 +177,7 @@ const adminVerifyUser = async (req, res) => {
             user.isVerifiedByAdmin &&
             user.adminVerification.status === "accepted"
         ) {
-    
+
             await user.save();
 
             const source = fs.readFileSync("mailtemplate.html", "utf-8").toString();
