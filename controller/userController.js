@@ -178,11 +178,19 @@ const login = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find({ isAdmin: false }); // Exclude users where isAdmin is true
+        // Fetch users and exclude the `userPassword` field in the query
+        const users = await User.find({ isAdmin: false }).select('-personalInformation.userPassword');
+
+        // If `.select()` doesn't work as expected, manually remove `userPassword`
+        const sanitizedUsers = users.map(user => {
+            const userObject = user.toObject();
+            delete userObject.personalInformation?.userPassword;
+            return userObject;
+        });
 
         // Identify duplicates
         const nameCounts = {};
-        users.forEach((user) => {
+        sanitizedUsers.forEach((user) => {
             const fullName = `${user.personalInformation.fullName.firstName} ${user.personalInformation.fullName.middleName || ""
                 } ${user.personalInformation.fullName.lastName}`;
             if (nameCounts[fullName]) {
@@ -197,7 +205,7 @@ const getAllUsers = async (req, res) => {
             .filter((name) => name.count > 1)
             .flatMap((name) => name.users);
 
-        res.status(200).json({ success: true, users, duplicateUserIds });
+        res.status(200).json({ success: true, users: sanitizedUsers, duplicateUserIds });
     } catch (error) {
         console.error("Error getting all users:", error);
         res.status(500).json({
@@ -206,6 +214,7 @@ const getAllUsers = async (req, res) => {
         });
     }
 };
+
 
 // Controller to get a user by ID
 const getUsersById = async (req, res) => {
