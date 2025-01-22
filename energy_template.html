@@ -9,7 +9,7 @@
         font-family: "Poppins", Arial, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #f9f9f9;
+        background-color: #f4f8fa;
         color: #333;
       }
 
@@ -20,19 +20,20 @@
         background: #fff;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         border-radius: 10px;
+        overflow: hidden;
       }
 
       .header {
         text-align: center;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #eaeaea;
+        padding: 30px;
+        background: linear-gradient(135deg, #0a653c, #004a25);
+        color: #fff;
       }
 
       .header h1 {
-        font-size: 22px;
-        color: #0a653c;
+        font-size: 24px;
         margin: 0;
-        font-weight: 600;
+        font-weight: 700;
       }
 
       .body {
@@ -41,43 +42,51 @@
       }
 
       .body h2 {
-        font-size: 18px;
+        font-size: 20px;
         color: #004a25;
-        font-weight: 600;
-        margin-bottom: 10px;
+        font-weight: 700;
+        margin-bottom: 15px;
       }
 
       .body p {
         font-size: 16px;
-        line-height: 1.6;
+        line-height: 1.8;
         color: #555;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
+      }
+
+      .highlight {
+        color: #d9534f;
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .cta-button {
+        display: inline-block;
+
+        color: black;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.3s;
+      }
+
+      .cta-button:hover {
+        background: #f4f4f4;
+        color: #000;
       }
 
       .footer {
         background: #0a653c;
         color: #fff;
-        padding: 15px;
-        border-radius: 0 0 10px 10px;
+        padding: 20px;
         text-align: center;
       }
 
       .footer p {
-        margin: 0;
+        margin: 0 0 10px;
         font-size: 14px;
-      }
-
-      .footer a {
-        color: #ffe600;
-        text-decoration: none;
-        font-weight: 600;
-      }
-
-      .footer a:hover {
-        text-decoration: underline;
-      }
-      .fooText{
-        color: #eaeaea;
       }
     </style>
   </head>
@@ -100,10 +109,11 @@
             2025</strong
           >.
         </p>
-        <p>
-          Our team is currently reviewing your submission. We will send you a
-          confirmation email once your application has been processed and
-          approved.
+        <p class="highlight">
+          Please note that this is <u>not a confirmation email</u>. Our team is
+          currently reviewing your submission. Once your application has been
+          processed and approved, we will send you a
+          <u>confirmation email containing your unique QR code</u>.
         </p>
         <p>
           If you have any questions in the meantime, feel free to reach out to
@@ -111,26 +121,23 @@
         </p>
         <p>
           <strong>Email:</strong>
-          <a href="info@aepc.gov.np">info@aepc.gov.np</a><br />
+          <a href="mailto:info@aepc.gov.np">info@aepc.gov.np</a><br />
           <strong>Phone:</strong> +9771-4598013
         </p>
-        <p>
-          <strong
-            >This is an automated message. Please do not reply to this
-            email.</strong
-          >
-        </p>
+        <a href="https://www.aepc.gov.np" class="cta-button"
+          >Visit Our Website</a
+        >
       </div>
 
       <!-- Footer -->
       <div class="footer">
-        <p class="fooText">
+        <p>
           Thank you for your interest in the Energy Transition Summit 2025. We
           look forward to connecting with you soon!
         </p>
         <p>
           Best regards,<br />
-          <strong>Event Team</strong>
+          <strong>Alternative Energy Promotion Centre</strong>
         </p>
       </div>
     </div>
