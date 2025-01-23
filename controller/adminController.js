@@ -46,6 +46,11 @@ const adminRegister = async (req, res) => {
             email: emailAddress,
             password: hashedPassword,
             isAdmin: true,
+            personalInformation: {
+                fullName: {
+                    firstName: "Admin",
+                },
+            },
         });
 
         await admin.save();
