@@ -23,6 +23,8 @@ const userSchema = new Schema({
         "Presenter",
         "General Participant",
         "VIP Guest",
+        "Media",
+        "Keynote Speaker",
       ],
       default: "General Participant",
     },
