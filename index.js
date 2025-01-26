@@ -31,6 +31,8 @@ app.use(express.json());
 // accepting form data
 app.use(express.urlencoded({ extended: true }));
 
+app.set('trust proxy', true);
+
 const directories = [
   "public/uploads",
   "public/uploads/userimage",

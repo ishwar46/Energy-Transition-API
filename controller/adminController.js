@@ -112,19 +112,23 @@ const adminResetPassword = async (req, res) => {
     }
 };
 
+//Admin Login
 const adminLogin = async (req, res) => {
     console.log(req.body);
     const { email, password } = req.body;
 
     try {
-        // Log the attempt
-        const ip = req.ip || req.connection.remoteAddress;
-        let isSuccess = false;
+        // Determine the client IP address
+        const ip = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress; // Get client IP
+        const cleanIp = ip.startsWith("::ffff:") ? ip.replace("::ffff:", "") : ip;
+
+        // Default log values
+        let isSuccess = false; // Assume login fails initially
 
         // Find the admin by email
         const admin = await User.findOne({ email: email, isAdmin: true });
         if (!admin) {
-            await LoginLog.create({ email, isSuccess, ip });
+            await LoginLog.create({ email, isSuccess, ip: cleanIp });
             return res
                 .status(400)
                 .json({ success: false, error: "Invalid credentials." });
@@ -133,13 +137,13 @@ const adminLogin = async (req, res) => {
         // Check if the password matches
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) {
-            await LoginLog.create({ email, isSuccess, ip });
+            await LoginLog.create({ email, isSuccess, ip: cleanIp });
             return res.status(400).json({ error: "Invalid credentials." });
         }
 
         // If successful login
         isSuccess = true;
-        await LoginLog.create({ email, isSuccess, ip });
+        await LoginLog.create({ email, isSuccess, ip: cleanIp });
 
         // Generate JWT token
         const token = jwt.sign(
@@ -164,6 +168,7 @@ const adminLogin = async (req, res) => {
         res.status(500).json({ error: "Internal server error." });
     }
 };
+
 
 const transporter = nodeMail.createTransport({
     service: "gmail",
