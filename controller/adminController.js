@@ -119,12 +119,12 @@ const adminLogin = async (req, res) => {
     try {
         // Extract client IP and user agent
         const ip = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
-        const cleanIp = ip.startsWith("::ffff:") ? ip.replace("::ffff:", "") : ip; // Normalize IPv4
+        const cleanIp = ip.startsWith("::ffff:") ? ip.replace("::ffff:", "") : ip;
         const userAgent = req.headers['user-agent'];
         let isSuccess = false;
 
         // Find the admin by email
-        const admin = await User.findOne({ email, isAdmin: true }); // Check if the user is an admin
+        const admin = await User.findOne({ email, isAdmin: true });
         if (!admin) {
             // Log failed attempt
             await LoginLog.create({ email, isSuccess, ip: cleanIp, userAgent });
@@ -343,14 +343,6 @@ const deleteUser = async (req, res) => {
     }
 };
 
-const generateInvoiceNumber = () => {
-    return (
-        "ACSICNEP-" +
-        Math.floor(Math.random() * 1000000)
-            .toString()
-            .padStart(6, "0")
-    );
-};
 const updateConferenceKitStatus = async (req, res) => {
     const { userId } = req.params;
     const { received } = req.body;
