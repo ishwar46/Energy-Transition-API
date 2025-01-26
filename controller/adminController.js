@@ -8,6 +8,7 @@ const LiveStream = require("../models/liveStream");
 const Volunteer = require("../models/volunteer");
 const upload = require("../middleware/multipledocs");
 const nodeMail = require('nodemailer');
+const LoginLog = require("../models/loginlog");
 
 
 function generateRandomPassword(length = 6) {
@@ -116,9 +117,14 @@ const adminLogin = async (req, res) => {
     const { email, password } = req.body;
 
     try {
+        // Log the attempt
+        const ip = req.ip || req.connection.remoteAddress;
+        let isSuccess = false;
+
         // Find the admin by email
         const admin = await User.findOne({ email: email, isAdmin: true });
         if (!admin) {
+            await LoginLog.create({ email, isSuccess, ip });
             return res
                 .status(400)
                 .json({ success: false, error: "Invalid credentials." });
@@ -127,12 +133,19 @@ const adminLogin = async (req, res) => {
         // Check if the password matches
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) {
+            await LoginLog.create({ email, isSuccess, ip });
             return res.status(400).json({ error: "Invalid credentials." });
         }
 
+        // If successful login
+        isSuccess = true;
+        await LoginLog.create({ email, isSuccess, ip });
+
         // Generate JWT token
-        const token = jwt.sign({ id: admin._id, isAdmin: admin.isAdmin },
-            process.env.JWT_SECRET, { expiresIn: "1 day" }
+        const token = jwt.sign(
+            { id: admin._id, isAdmin: admin.isAdmin },
+            process.env.JWT_SECRET,
+            { expiresIn: "1 day" }
         );
 
         // Admin login successful
