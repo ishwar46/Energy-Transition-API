@@ -114,36 +114,34 @@ const adminResetPassword = async (req, res) => {
 
 //Admin Login
 const adminLogin = async (req, res) => {
-    console.log(req.body);
     const { email, password } = req.body;
 
     try {
-        // Determine the client IP address
-        const ip = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress; // Get client IP
-        const cleanIp = ip.startsWith("::ffff:") ? ip.replace("::ffff:", "") : ip;
-
-        // Default log values
-        let isSuccess = false; // Assume login fails initially
+        // Extract client IP and user agent
+        const ip = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
+        const cleanIp = ip.startsWith("::ffff:") ? ip.replace("::ffff:", "") : ip; // Normalize IPv4
+        const userAgent = req.headers['user-agent'];
+        let isSuccess = false;
 
         // Find the admin by email
-        const admin = await User.findOne({ email: email, isAdmin: true });
+        const admin = await User.findOne({ email, isAdmin: true }); // Check if the user is an admin
         if (!admin) {
-            await LoginLog.create({ email, isSuccess, ip: cleanIp });
-            return res
-                .status(400)
-                .json({ success: false, error: "Invalid credentials." });
+            // Log failed attempt
+            await LoginLog.create({ email, isSuccess, ip: cleanIp, userAgent });
+            return res.status(400).json({ success: false, error: "Invalid credentials." });
         }
 
         // Check if the password matches
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) {
-            await LoginLog.create({ email, isSuccess, ip: cleanIp });
-            return res.status(400).json({ error: "Invalid credentials." });
+            // Log failed attempt
+            await LoginLog.create({ email, isSuccess, ip: cleanIp, userAgent });
+            return res.status(400).json({ success: false, error: "Invalid credentials." });
         }
 
         // If successful login
         isSuccess = true;
-        await LoginLog.create({ email, isSuccess, ip: cleanIp });
+        await LoginLog.create({ userId: admin._id, email, isSuccess, ip: cleanIp, userAgent });
 
         // Generate JWT token
         const token = jwt.sign(
@@ -152,7 +150,7 @@ const adminLogin = async (req, res) => {
             { expiresIn: "1 day" }
         );
 
-        // Admin login successful
+        // Respond with admin details and token
         res.status(200).json({
             token: token,
             admin: {
@@ -164,7 +162,7 @@ const adminLogin = async (req, res) => {
             message: "Admin login successful.",
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.status(500).json({ error: "Internal server error." });
     }
 };
