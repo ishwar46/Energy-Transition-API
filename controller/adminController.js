@@ -496,16 +496,15 @@ const emailTemplateForVol = handlebars.compile(templateSource);
 
 const createVolunteer = async (req, res) => {
     try {
-        // Start uploading the file asynchronously
         upload(req, res, async (err) => {
             if (err) {
                 if (err.code === "LIMIT_FILE_SIZE") {
-                    return res.status(413).send({
+                    return res.status(413).json({
                         success: false,
                         message: "File/Photo's size is too large. Maximum allowed size is 5 MB.",
                     });
                 }
-                return res.status(400).send({
+                return res.status(400).json({
                     success: false,
                     message: "Error uploading image.",
                     error: err.message,
@@ -513,29 +512,26 @@ const createVolunteer = async (req, res) => {
             }
 
             const { fullName, address, email, contact } = req.body;
-            console.log(req.body)
 
             if (!fullName || !address || !email || !contact) {
                 return res.status(400).json({
                     success: false,
-                    message: "All Fields are required."
+                    message: "All fields are required.",
                 });
             }
 
             const volunteerImage = req.files?.volunteerimage ? req.files.volunteerimage[0].path : null;
 
-            const emailExist = await Volunteer.findOne({ email: email });
+            const emailExist = await Volunteer.findOne({ email });
             if (emailExist) {
                 return res.status(400).json({
                     success: false,
-                    message: "Email Already Exists"
+                    message: "Email already exists.",
                 });
             }
 
             const randomPassword = generateRandomPassword();
-            const [hashedPassword] = await Promise.all([
-                bcrypt.hash(randomPassword, 10),
-            ]);
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
             const newUser = new Volunteer({
                 fullName,
@@ -544,36 +540,46 @@ const createVolunteer = async (req, res) => {
                 email,
                 password: hashedPassword,
                 volunteerimage: volunteerImage,
-                isVolunteer: true
+                isVolunteer: true,
             });
 
             await newUser.save();
-            console.log(newUser.email)
 
             const htmlToSend = emailTemplateForVol({
                 email: newUser.email,
                 password: randomPassword,
             });
 
-            // Send the email asynchronously after responding to the user
-            res.status(200).json({
-                success: true,
-                message: "Volunteer Registered. You will receive a confirmation email soon."
-            });
-
-            // Handle email sending asynchronously
-            sendEmail({
-                subject: "Volunteer Registration Success - Crown The Vision Nepal . Chitwan",
-                html: htmlToSend,
+            const mailOptions = {
+                from: "EnergyTransition Summit 2025 <energytransition.summit2025@gmail.com>",
                 to: newUser.email,
-            }).catch(emailError => {
-                console.error(`Failed to send email: ${emailError.message}`);
-            });
+                subject: "Welcome to Energy Transition Summit 2025",
+                html: htmlToSend,
+            };
 
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error("Error sending email:", error.message);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Volunteer registered, but failed to send confirmation email.",
+                        error: error.message,
+                    });
+                } else {
+                    console.log("Email sent successfully:", info.response);
+                    return res.status(200).json({
+                        success: true,
+                        message: "Volunteer registered successfully. Confirmation email sent.",
+                    });
+                }
+            });
         });
     } catch (error) {
-        console.log(`Error while creating Volunteer: ${error.message}`);
-        return res.status(500).send("Internal Server Error");
+        console.error("Error while creating volunteer:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error.",
+        });
     }
 };
 
