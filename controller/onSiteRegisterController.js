@@ -194,7 +194,7 @@ const markAttendanceForOnSiteUser = async (req, res) => {
 
         const alreadyMarked = currentUser.attendance.some((attendance) => {
             const attendanceDate = new Date(attendance.date.$date || attendance.date);
-            attendanceDate.setHours(0, 0, 0, 0); // Reset time to 00:00 for accurate comparison
+            attendanceDate.setHours(0, 0, 0, 0);
             return attendanceDate.getTime() === today.getTime();
         });
 
@@ -218,9 +218,6 @@ const markAttendanceForOnSiteUser = async (req, res) => {
         res.status(500).json({ error: "Internal server error." });
     }
 };
-
-
-
 
 module.exports = {
     createOnSiteRegister,
