@@ -255,16 +255,86 @@ const getUserById = async (req, res) => {
 // Controller to update a user by ID
 const updateUserById = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const updateData = req.body;
+        upload(req, res, async (err) => {
+            if (err) {
+                if (err.code === "LIMIT_FILE_SIZE") {
+                    return res.status(413).json({
+                        success: false,
+                        message: "Image size is too large. Max allowed size is 500KB.",
+                    });
+                }
+                return res.status(400).json({
+                    success: false,
+                    message: "Error uploading image. Try again.",
+                    error: err.message,
+                });
+            }
 
-        const user = await User.findByIdAndUpdate(userId, updateData, {
-            new: true,
-        }).select("-password -__v");
-        if (!user) {
-            return res.status(404).json({ error: "User not found." });
-        }
-        res.status(200).json({ success: true, user });
+            const { userId } = req.params;
+            let updateData;
+
+            // Debug: Log req.files to see what we're receiving
+            console.log("DEBUG: req.files:", req.files);
+            console.log("DEBUG: req.body keys:", Object.keys(req.body));
+
+            // Check if there's a file upload
+            let hasImageUpload = false;
+            let userimage = null;
+
+            if (req.files && req.files.userimage && req.files.userimage.length > 0) {
+                hasImageUpload = true;
+                userimage = path.basename(req.files.userimage[0].path);
+                console.log("DEBUG: Image uploaded:", userimage);
+            }
+
+            if (hasImageUpload) {
+                // Reconstruct the nested object structure
+                updateData = {
+                    personalInformation: {
+                        title: req.body.title,
+                        fullName: {
+                            firstName: req.body.firstName,
+                            middleName: req.body.middleName,
+                            lastName: req.body.lastName,
+                        },
+                        emailAddress: req.body.emailAddress,
+                        mobileNumber: req.body.mobileNumber,
+                        whatsAppNumber: req.body.whatsAppNumber,
+                        emergencyContactNum: req.body.emergencyContactNum,
+                        nationality: req.body.nationality,
+                        dateOfBirth: req.body.dateOfBirth,
+                        currentAddress: req.body.currentAddress,
+                        highestEducationLevel: req.body.highestEducationLevel,
+                        occupation: req.body.occupation,
+                        positionInDistrict: req.body.positionInDistrict,
+                        dietaryRequirements: {
+                            vegetarian: req.body.vegetarian === 'true',
+                            nonveg: req.body.nonveg === 'true',
+                            other: req.body.dietaryOther || '',
+                        },
+                    },
+                    profilePicture: {
+                        fileName: userimage,
+                        uploadDate: new Date()
+                    }
+                };
+                console.log("DEBUG: Update data with image:", JSON.stringify(updateData, null, 2));
+            } else {
+                // No file upload, use the JSON data as-is
+                updateData = { ...req.body };
+                console.log("DEBUG: Update data without image:", JSON.stringify(updateData, null, 2));
+            }
+
+            const user = await User.findByIdAndUpdate(userId, updateData, {
+                new: true,
+            }).select("-password -__v");
+
+            if (!user) {
+                return res.status(404).json({ error: "User not found." });
+            }
+
+            res.status(200).json({ success: true, user });
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal server error." });

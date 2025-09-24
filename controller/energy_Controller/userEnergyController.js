@@ -2,6 +2,7 @@ const upload = require("../../middleware/multipledocs");
 const User = require("../../models/user")
 const bcrypt = require("bcrypt");
 const fs = require("fs");
+const path = require("path");
 const handlebars = require("handlebars");
 const nodeMail = require('nodemailer');
 
@@ -14,7 +15,7 @@ const registerEnergy = async (req, res) => {
                 if (err.code === "LIMIT_FILE_SIZE") {
                     return res.status(413).json({
                         success: false,
-                        message: "File/Photo's size is too large. Max allowed size is 5 MB.",
+                        message: "Image size is too large. Max allowed size is 500KB.",
                     });
                 }
                 return res.status(400).json({
@@ -26,7 +27,8 @@ const registerEnergy = async (req, res) => {
 
             let userimage = null;
             if (req.files && req.files.userimage && req.files.userimage.length > 0) {
-                userimage = req.files.userimage[0].path;
+                // Use path.basename to ensure we only get the filename, not the full path
+                userimage = path.basename(req.files.userimage[0].path);
             }
 
             //Destructuting
